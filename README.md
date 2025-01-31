@@ -30,6 +30,7 @@ The dataset is structured as follows:
       /tumor  
       /without\_tumor
 
+dataset link- https://drive.google.com/drive/folders/1yfg_eOKelB82PiIqtfAdh0qHFbQ92QVo?usp=drive_link
 ## **Models**
 
 Two CNN models are used for classification:
@@ -43,6 +44,8 @@ Two CNN models are used for classification:
    * Architecture: Transfer learning-based CNN.  
    * Activation: Sigmoid for binary classification.
 
+model1 link:- https://drive.google.com/file/d/1lCKHvx0aJirlufl2AWAqfqbNAfXoLT6S/view?usp=drive_link
+model2 link:- https://drive.google.com/file/d/1--Jt7qX4YUilLteS2anHu2vQhxjUGpRm/view?usp=drive_link
 ### **Preprocessing**
 
 * Resize images to the required input size.  
