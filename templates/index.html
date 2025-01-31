@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Detection</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            color: #333;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-top: 50px;
+            color: #34495e;
+            animation: fadeIn 1s ease-out;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+        }
+
+        /* Container Styles */
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        #upload-container {
+            border: 2px dashed #3498db;
+            padding: 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s;
+        }
+
+        #upload-container:hover {
+            background-color: #ecf0f1;
+            transform: scale(1.05);
+        }
+
+        #preview {
+            margin-top: 20px;
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            transition: opacity 1s ease-in-out;
+        }
+
+        #predictBtn {
+            background-color: #3498db;
+            color: white;
+            font-size: 1rem;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease, transform 0.2s;
+            display: none;
+        }
+
+        #predictBtn:hover {
+            background-color: #2980b9;
+            transform: scale(1.1);
+        }
+
+        /* Loading Indicator */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin-top: 20px;
+        }
+
+        /* Result Styles */
+        #result {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2ecc71;
+            animation: fadeIn 1s ease-out;
+        }
+
+        #errorResult {
+            color: #e74c3c;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Media Query for Responsiveness */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            p {
+                font-size: 1rem;
+            }
+
+            #predictBtn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Brain Tumor Detection</h1>
+        <p>Upload an MRI image of the brain to check for tumor detection.</p>
+        
+        <div id="upload-container">
+            <p>Click to upload an image</p>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </div>
+        
+        <img id="preview" src="" alt="Image Preview">
+        
+        <button id="predictBtn">Predict</button>
+        
+        <div id="loader" class="loader" style="display: none;"></div>
+        
+        <p id="result"></p>
+        <p id="errorResult"></p>
+    </div>
+
+    <script>
+        document.getElementById("upload-container").addEventListener("click", function () {
+            document.getElementById("fileInput").click();
+        });
+
+        document.getElementById("fileInput").addEventListener("change", function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const previewImage = document.getElementById("preview");
+                    previewImage.src = e.target.result;
+
+                    // Show the image preview
+                    previewImage.style.display = "block";
+                    previewImage.classList.add("show");
+
+                    // Show the "Predict" button
+                    document.getElementById("predictBtn").style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById("predictBtn").addEventListener("click", function () {
+            const fileInput = document.getElementById("fileInput");
+            if (fileInput.files.length === 0) {
+                alert("Please upload an image first.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            // Show loading spinner
+            document.getElementById("loader").style.display = "inline-block";
+            document.getElementById("predictBtn").disabled = true;
+
+            fetch("/predict", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("loader").style.display = "none";
+                document.getElementById("predictBtn").disabled = false;
+
+                if (data.error) {
+                    document.getElementById("result").style.display = "none";
+                    document.getElementById("errorResult").textContent = "Error: " + data.error;
+                    document.getElementById("errorResult").style.display = "block";
+                } else {
+                    document.getElementById("errorResult").style.display = "none";
+                    document.getElementById("result").textContent = data.result;
+                    document.getElementById("result").style.display = "block";
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("loader").style.display = "none";
+                document.getElementById("predictBtn").disabled = false;
+                document.getElementById("errorResult").textContent = "An unexpected error occurred. Please try again.";
+                document.getElementById("errorResult").style.display = "block";
+            });
+        });
+    </script>
+
+</body>
+</html>
