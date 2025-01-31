@@ -1,4 +1,4 @@
-# **Brain Tumor Detection System**
+# **Brain Tumor Detection **
 
 ## **Overview**
 
